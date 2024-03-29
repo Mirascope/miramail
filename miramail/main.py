@@ -72,10 +72,7 @@ class MiraMail(BaseModel):
         last_message = messages[-1]
         print("From: " + last_message.sender)
         print("Snippet: " + last_message.snippet)
-        if self.call:
-            call_response = self.call(body=body).call()
-        else:
-            call_response = Reply(body=body).call()
+        call_response = Reply(body=body).call()
         print("Response: " + call_response.content)
         if self.send_type == "send":
             self._send_message(last_message, call_response.content)
