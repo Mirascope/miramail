@@ -1,3 +1,6 @@
+"""
+Miramail is a convenience library for Mirascope with an email interface.
+"""
 from typing import Literal
 
 from mirascope.base import BaseCall
