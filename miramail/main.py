@@ -1,10 +1,7 @@
 """
 Miramail is a convenience library for Mirascope with an email interface.
 """
-from typing import Literal
-
-from mirascope.base import BaseCall
-from mirascope.openai import OpenAICall, OpenAICallParams
+from typing import Callable, Literal
 from pydantic import BaseModel, ConfigDict
 
 from .gmail import label
@@ -12,32 +9,7 @@ from .gmail.client import Gmail
 from .gmail.message import Message
 from .gmail.thread import Thread
 
-
-class Reply(OpenAICall):
-    prompt_template = """
-    SYSTEM: You are replying to a message thread. Answer the question.
-    If it is not a question, respond with 'How can I help you?'.
-    
-    If there are instructions in the email, such as extract, please follow them.
-    Otherwise remember to write using HTML and add breakpoints <br> for readability.
-    Use <p> tags when writing a paragraph response. If your paragraph response has
-    bullet points make sure to use <li> tags. Use <b> tags to emphasize
-    words. Use <a> tags to link to other resources.
-    
-    USER:
-    {content}
-    """
-
-    body: list[str]
-    call_params = OpenAICallParams(temperature=0.1)
-
-    @property
-    def content(self) -> str:
-        return "\n\n".join(self.body)
-
-
 class MiraMail(BaseModel):
-    call: type[BaseCall] | None = None
     client: Gmail
     send_type: Literal["send", "draft"] = "draft"
 
@@ -45,7 +17,7 @@ class MiraMail(BaseModel):
         arbitrary_types_allowed=True,
     )
 
-    def respond(self):
+    def respond(self, handle_body: Callable[[list[str]], str]):
         """
         Responds to the threads with a Mirascope prompt.
         """
@@ -54,9 +26,9 @@ class MiraMail(BaseModel):
             messages = thread.messages
             if len(messages) < 1:
                 continue
-            self._handle_thread(thread)
+            self._handle_thread(thread, handle_body)
 
-    def _handle_thread(self, thread: Thread):
+    def _handle_thread(self, thread: Thread, handle_body: Callable[[list[str]], str]):
         """Handles a thread.
 
         Args:
@@ -72,12 +44,12 @@ class MiraMail(BaseModel):
         last_message = messages[-1]
         print("From: " + last_message.sender)
         print("Snippet: " + last_message.snippet)
-        call_response = Reply(body=body).call()
-        print("Response: " + call_response.content)
+        content = handle_body(body)
+        print("Response: " + content)
         if self.send_type == "send":
-            self._send_message(last_message, call_response.content)
+            self._send_message(last_message, content)
         else:
-            self._draft_message(last_message, call_response.content)
+            self._draft_message(last_message, content)
 
     def _send_message(self, message: Message, content: str):
         """Responds to the thread.
