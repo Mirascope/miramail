@@ -62,7 +62,7 @@ from miramail.miramail import MiraMail
 )
 @patch.object(Message, "modify_labels", return_value=MagicMock())
 def test_respond(
-    get_threads_mock: MagicMock,
+    modify_labels_mock: MagicMock,
     messages: list[Message],
     send_type: Literal["send", "draft"],
 ):
