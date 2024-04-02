@@ -61,23 +61,24 @@ from miramail.miramail import MiraMail
     ],
 )
 @patch.object(Message, "modify_labels", return_value=MagicMock())
-@patch.object(Gmail, "create_draft", return_value=MagicMock())
-@patch.object(Gmail, "send_message", return_value=MagicMock())
 def test_respond(
-    send_message_mock,
-    create_draft_mock,
-    modify_labels_mock,
+    get_threads_mock: MagicMock,
     messages: list[Message],
     send_type: Literal["send", "draft"],
 ):
-    miramail = MiraMail(client=MagicMock(spec=Gmail), send_type=send_type)
+    gmail = MagicMock(spec=Gmail, send_type=send_type)
+    gmail.send_message = MagicMock()
+    gmail.create_draft = MagicMock()
+
     thread1 = MagicMock(spec=Thread)
     thread1.messages = messages
-    miramail.client.get_threads.return_value = [thread1]
 
-    def handle_body_mock(body):
-        return "test"
+    gmail.get_threads = MagicMock(return_value=[thread1])
+    miramail = MiraMail(client=gmail, send_type=send_type)
+
+    def handle_body_mock(body: list[str]):
+        return "\n".join(body)
 
     miramail.respond(handle_body_mock)
 
-    miramail.client.get_threads.assert_called_once_with(labels=["UNREAD"])
+    gmail.get_threads.assert_called_once_with(labels=["UNREAD"])
