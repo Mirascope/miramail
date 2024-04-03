@@ -1,1 +1,1 @@
-from .main import MiraMail
+from .miramail import MiraMail

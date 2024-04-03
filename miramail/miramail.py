@@ -1,13 +1,16 @@
 """
-Miramail is a convenience library for Mirascope with an email interface.
+MiraMail is a convenience library for Mirascope with an email interface.
 """
+
 from typing import Callable, Literal
+
 from pydantic import BaseModel, ConfigDict
 
 from .gmail import label
 from .gmail.client import Gmail
 from .gmail.message import Message
 from .gmail.thread import Thread
+
 
 class MiraMail(BaseModel):
     client: Gmail

@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class AttachmentMetadata(BaseModel):
     raw_data: bytes
     file_name: str

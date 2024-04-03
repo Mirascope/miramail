@@ -5,11 +5,13 @@ Read unread inbox and responds to questions.
 import os
 import time
 
-from miramail import MiraMail
-from miramail.gmail import Gmail
 from mirascope.openai import OpenAICall, OpenAICallParams
 
-os.environ["OPENAI_API_KEY"] = ""
+from miramail import MiraMail
+from miramail.gmail import Gmail
+
+os.environ["OPENAI_API_KEY"] = "YOUR_API_KEY"
+
 
 class Reply(OpenAICall):
     prompt_template = """
@@ -32,11 +34,13 @@ class Reply(OpenAICall):
     @property
     def content(self) -> str:
         return "\n\n".join(self.body)
-    
+
+
 def handle_body(body: list[str]) -> str:
     return Reply(body=body).call().content
 
-gmail = Gmail(credentials_file="dev_credentials.json", token_file="dev_token.json")
+
+gmail = Gmail(credentials_file="credentials.json", token_file="token.json")
 mail = MiraMail(client=gmail)
 while True:
     print("Checking for new messages...")
